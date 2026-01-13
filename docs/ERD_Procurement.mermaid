@@ -1,0 +1,133 @@
+---
+title: Procurement
+---
+erDiagram
+    direction TB
+
+    CUSTOMER {
+        string ID PK
+        enum type "Options: Department, Individual"
+        string name
+        string company_name
+    }
+    SUPPLIER {
+        string ID PK
+        string name
+        enum type "Options: Company, Individual"
+        string bank_name
+        string account_number
+        string account_name
+        enum TAX_or_VAT_category "Options: Registered, Unregistered, SEZ, etc."
+        string tax_id
+        string sales_contact_name
+        string sales_email
+        string billing_currency
+        boolean disabled
+        string billing_address_id FK
+        string shipping_address_id FK
+    }
+    ADDRESS {
+        string ID PK
+        enum owner "Either Company or Supplier"
+        enum type "Either Billing or Shipping"
+        string address_detail
+        string city
+        string state_or_province
+        string country
+        string contact_name
+        string email
+        string phone
+        string fax
+    }
+    MATERIAL {
+        string ID PK "Item identifier/code"
+        enum ID_type "Options: IPN, SPN, MPN"
+        string name
+        string description
+        number price "Acts as Value"
+        number available_quantity
+        string supplier_id FK
+    }
+    QUOTATION_ITEM {
+        string ID PK
+        number quantity
+        number rate "Current Price"
+        number discount_rate
+        string material_id FK
+    }
+    QUOTATION {
+        string ID PK
+        array quotaton_items
+        string created_date_ISO
+        string expected_delivery_ISO
+        number tax_rate
+        number shipping_charges
+        string additional_message
+        string supplier_id FK
+        string origin_address FK
+        string RFQ_id FK
+    }
+    REQUEST_ITEM {
+        string ID PK
+        string material_name "Avoid Brand Lock-in name"
+        number quantity
+        string required_date_ISO
+    }
+    REQUEST_FOR_QUOTATION {
+        string ID PK
+        array request_items
+        array suppliers_id
+        number budget_amount "Optional"
+        enum order_purpose "Options: Purchasing, etc"
+        enum status "Options: Draft, Sent, Awaiting Response, Closed"
+        string created_date_ISO
+        string destination_address FK
+        string customer_id FK
+        string request_terms_id FK
+    }
+    TERMS_AND_CONDITIONS {
+        string ID PK
+        enum type "Options: Payment, Request"
+        string title
+        string detail "Long text of TnC"
+    }
+    PURCHASE_ORDER {
+        string ID PK "PO number/series"
+        enum status "Options: Draft, Sent, Hold, To Bill, Delivered, etc"
+        string created_date_ISO
+        string payment_term_id FK
+        string quotation_id FK
+    }
+    PURCHASE_RECEIPT {
+        string ID PK
+        string supplier_delivery_note
+        string accepted_warehouse_address_id
+        string rejected_warehouse_address_id
+        string created_date_time_ISO
+        string purchase_order_id FK
+    }
+    PURCHASE_INVOICE {
+        string ID PK
+        string created_date_time_ISO
+        string payment_due_date_ISO
+        enum status "Options: Awaiting PaymenAw, Paid, Overdue, Returned"
+        string purchase_order_id FK
+    }
+
+    SUPPLIER ||--|| ADDRESS : holds
+    SUPPLIER ||--|{ MATERIAL : owns
+    QUOTATION ||--|{ QUOTATION_ITEM : has
+    QUOTATION_ITEM ||--|| MATERIAL : uses
+    REQUEST_FOR_QUOTATION ||--|| CUSTOMER : owned
+    REQUEST_FOR_QUOTATION ||--|{ REQUEST_ITEM : states
+    REQUEST_FOR_QUOTATION ||--|| ADDRESS : holds
+    REQUEST_FOR_QUOTATION ||--|| TERMS_AND_CONDITIONS : states
+    QUOTATION }|--|| REQUEST_FOR_QUOTATION : bound
+    PURCHASE_ORDER ||--|| QUOTATION : selects
+    PURCHASE_ORDER ||--|| TERMS_AND_CONDITIONS : states
+    PURCHASE_RECEIPT ||--|| PURCHASE_ORDER : bound
+    PURCHASE_INVOICE ||--|| PURCHASE_ORDER : bound
+    
+    
+
+

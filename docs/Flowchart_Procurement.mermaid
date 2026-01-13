@@ -1,0 +1,24 @@
+---
+title: Procurement
+---
+flowchart TB
+    Start((Start))
+    C1[Company requests for a quotation]
+    S1[Each supplier sends a quotation]
+    C2[Company selects one quotation]
+    C3[Company creates and sends Purchase Order to a specific supplier]
+    S2[Supplier delivers goods/services]
+    C4[Company records Purchase Receipt]
+    S3[Supplier sends Purchase Invoice]
+    C5[Company makes payment]
+    Stop(((Stop)))
+
+    Start --> C1
+    C1 --> S1
+    S1 --> C2
+    C2 --> C3
+    C3 --> S2
+    S2 --> C4
+    C4 --> S3
+    S3 --> C5
+    C5 --> Stop
