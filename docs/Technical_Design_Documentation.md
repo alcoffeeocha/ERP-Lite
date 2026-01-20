@@ -4,20 +4,29 @@
 
 ### App Definition and What is the Purpose
 
-ERP Lite is a lightweight implementation of digitalized Enterprise Resource Planning that contains well-known modules such as Procurement (for receiving goods from suppliers). It is a software that runs on web platform or simply, a web application.
+ERP Lite is a lightweight implementation of digitalized Enterprise Resource
+Planning that contains well-known modules such as Procurement (for receiving
+goods from suppliers). It is a software that runs on web platform or simply, a
+web application.
 
-The purpose is to demo how ERP module works, for a quick and easy to customize manners, due to its simple technologies underneath.
+The purpose is to demo how ERP module works, for a quick and easy to customize
+manners, due to its simple technologies underneath.
 
-Anyone can learn ERP in practical by just visiting the link, no installation required, just your web browser.
+Anyone can learn ERP in practical by just visiting the link, no installation
+required, just your web browser.
 
 ### App Constraints
 
 - Free and Open Source under MIT License, code lives on GitHub platform.
-- in initial release or early stage, relational database will be implemented using web browser `localStorage`.
+- in initial release or early stage, relational database will be implemented
+  using web browser `localStorage`.
 - Offline-first experience.
 - Compatible on mobile phone.
-- CAUTION! this software is not intended for real case day-to-day business as it does not implement a standard ERP system. For that case, I suggest using popular ERP softwares like SAP, Odoo or ERPNext.
-- Procurement module will be released initially, other will follow for next releases, one module per release.
+- CAUTION! this software is not intended for real case day-to-day business as it
+  does not implement a standard ERP system. For that case, I suggest using
+  popular ERP softwares like SAP, Odoo or ERPNext.
+- Procurement module will be released initially, other will follow for next
+  releases, one module per release.
 
 ## The Technology Stack (RFC - Request for Comments)
 
@@ -50,15 +59,11 @@ TanStack Query
 
 ### Business Flow
 
-- [Procurement](./Business_Flows.md#Procurement)
+[Read here](./Business_Flows.md)
 
 ### Entity-Relationship Diagram
 
-Entity-Relationship Diagram or ERD or ER Model describes composed entities and specifies relationships between them, in a specific domain of knowledge.
-
-Entity is
-
-- [Procurement](./Entity_Relationship_Diagrams.md#Procurement)
+[Read here](./Entity_Relationship_Diagrams.md)
 
 ### Data layer
 
@@ -115,7 +120,7 @@ abstract class Resource {
    */
   abstract getOne<T>(
     id: RecordID,
-    filter?: string
+    filter?: string,
   ): Promise<ResourceResponse<T>>;
   /**
    * Retrieve more than 1 item.
@@ -126,7 +131,7 @@ abstract class Resource {
    */
   abstract getList<T>(
     filter?: string,
-    sort?: SortMethod
+    sort?: SortMethod,
   ): Promise<ResourceResponse<T[]>>;
   /**
    * Create a new item.
@@ -187,6 +192,10 @@ interface Database {
 }
 ```
 
-There is only 1 database connection and instance. For persistent relational DB, the name can be `ERP_Lite`.
+There is only 1 database connection and instance. For persistent relational DB,
+the name can be `ERP_Lite`.
 
-Table name must be written as `[Module Name]_[Entity]`. For example, Purchase Order records/entries want to be referred as `PurchaseOrder` and if it is owned by Procurement module, then the table or collection name must be `Procurement_PurchaseOrder`.
+Table name must be written as `[Module Name]_[Entity]`. For example, Purchase
+Order records/entries can be identified as `PurchaseOrder` and if it is owned by
+Procurement module, then the table or collection name will be
+`Procurement_PurchaseOrder`.
