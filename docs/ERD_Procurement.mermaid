@@ -44,24 +44,24 @@ erDiagram
         enum ID_type "Options: IPN, SPN, MPN"
         string name
         string description
-        number price "Acts as Value"
-        number available_quantity
+        long price "Acts as Value"
+        int available_quantity
         string supplier_id FK
     }
     QUOTATION_ITEM {
         string ID PK
-        number quantity
-        number rate "Current Price"
-        number discount_rate
+        int quantity
+        long rate "Current Price"
+        int discount_rate
         string material_id FK
     }
     QUOTATION {
         string ID PK
-        array quotaton_items
+        array quotation_items
         string created_date_ISO
         string expected_delivery_ISO
-        number tax_rate
-        number shipping_charges
+        int tax_rate
+        long shipping_charges
         string additional_message
         string supplier_id FK
         string origin_address FK
@@ -70,14 +70,14 @@ erDiagram
     REQUEST_ITEM {
         string ID PK
         string material_name "Avoid Brand Lock-in name"
-        number quantity
+        int quantity
         string required_date_ISO
     }
     REQUEST_FOR_QUOTATION {
         string ID PK
         array request_items
         array suppliers_id
-        number budget_amount "Optional"
+        long budget_amount "Optional"
         enum order_purpose "Options: Purchasing, etc"
         enum status "Options: Draft, Sent, Awaiting Response, Closed"
         string created_date_ISO
@@ -93,6 +93,7 @@ erDiagram
     }
     PURCHASE_ORDER {
         string ID PK "PO number/series"
+        array items "Embedded: material_id, material_name, material_description, quantity, rate, supplier_id"
         enum status "Options: Draft, Sent, Hold, To Bill, Delivered, etc"
         string created_date_ISO
         string payment_term_id FK
@@ -100,21 +101,26 @@ erDiagram
     }
     PURCHASE_RECEIPT {
         string ID PK
+        array items "Embedded: material_id, material_name, ordered_qty, received_qty"
         string supplier_delivery_note "Note from Supplier"
-        string accepted_warehouse_address_id
-        string rejected_warehouse_address_id
+        string warehouse_name
+        string accepted_warehouse_address_id FK
+        string rejected_warehouse_address_id FK
         string created_date_time_ISO
         string purchase_order_id FK
     }
     PURCHASE_INVOICE {
         string ID PK
+        array items "Embedded: material_id, quantity, rate, amount"
+        enum payment_status "Options: Unpaid, Paid"
+        long grand_total
         string created_date_time_ISO
         string payment_due_date_ISO
-        enum status "Options: Awaiting PaymenAw, Paid, Overdue, Returned"
         string purchase_order_id FK
     }
 
-    SUPPLIER ||--|| ADDRESS : holds
+    SUPPLIER ||--|| ADDRESS : "billing operation"
+    SUPPLIER ||--|| ADDRESS : "shipping operation"
     SUPPLIER ||--|{ MATERIAL : owns
     QUOTATION ||--|{ QUOTATION_ITEM : has
     QUOTATION_ITEM ||--|| MATERIAL : uses
@@ -123,9 +129,12 @@ erDiagram
     REQUEST_FOR_QUOTATION ||--|| ADDRESS : holds
     REQUEST_FOR_QUOTATION ||--|| TERMS_AND_CONDITIONS : states
     QUOTATION }|--|| REQUEST_FOR_QUOTATION : bound
+    QUOTATION }|--|| SUPPLIER : from
     PURCHASE_ORDER ||--|| QUOTATION : selects
     PURCHASE_ORDER ||--|| TERMS_AND_CONDITIONS : states
     PURCHASE_RECEIPT ||--|| PURCHASE_ORDER : bound
+    PURCHASE_RECEIPT ||--|| ADDRESS : accepted
+    PURCHASE_RECEIPT ||--|| ADDRESS : rejected
     PURCHASE_INVOICE ||--|| PURCHASE_ORDER : bound
     
     

@@ -79,20 +79,16 @@ await masterData.Procurement.orders.getList("my supplier name", "descending");
 Proposed
 
 ```ts
-type ResourceName = string;
 type RecordID = string;
 type SortMethod = "descending" | "ascending";
 
 /**
  * An interface describing response of a resource.
  */
-interface ResourceResponse<T> {
+interface RepositoryResponse<T> {
   data: T | null;
   success: boolean;
-  /**
-   * HTTP error status code.
-   */
-  errorCode: string | null;
+  errorCode: "NOT_FOUND" | "DUPLICATE" | "STORAGE_ERROR"; // Add more if needed
   /**
    * Message on success or error.
    */
@@ -100,46 +96,56 @@ interface ResourceResponse<T> {
 }
 
 /**
+ * An interface describing operations on a specific Storage.
+ */
+interface IStorageDriver {
+  connect(): Promise<void>;
+  read(table: string): Promise<any>;
+  write(table: string, data: any): Promise<void>;
+}
+
+/**
  * @remarks
  * T = Type of Data Model or Entity, e.g. Item, Receipt.
  */
-abstract class Resource {
+abstract class BaseRepository<T extends { id: RecordID }> {
+  protected db: IStorageDriver;
+
   /**
    * @param name - The name of the resource. The name may be similar to a Model/Entity name.
    */
-  constructor(name: ResourceName) {
-    this.name = name;
+  constructor(tableName: string, db: IStorageDriver) {
+    this.tableName = tableName;
+    this.db = db;
   }
 
   /**
    * Retrieve only one item based on its ID.
    *
    * @param id - ID of the item
-   * @param filter - A query line to make search be more specific
    * @returns Data asked for further use
    */
-  abstract getOne<T>(
+  abstract getOne(
     id: RecordID,
-    filter?: string,
-  ): Promise<ResourceResponse<T>>;
+  ): Promise<RepositoryResponse<T>>;
   /**
    * Retrieve more than 1 item.
    *
-   * @param filter - A query line to shrink the result
+   * @param filter - Whether each item pass the check to be retrieved
    * @param sort - A method used for sorting the result
    * @returns Data asked for further use
    */
-  abstract getList<T>(
-    filter?: string,
+  abstract getList(
+    filter?: Partial<T> | ((item: T) => boolean),
     sort?: SortMethod,
-  ): Promise<ResourceResponse<T[]>>;
+  ): Promise<RepositoryResponse<T[]>>;
   /**
    * Create a new item.
    *
    * @param data - Detail of new item to be added
    * @returns Newly generated ID of stored item
    */
-  abstract add<T>(data: T): Promise<ResourceResponse<RecordID>>;
+  abstract add(data: Omit<T, "id">): Promise<RepositoryResponse<T>>;
   /**
    * Update an existing item.
    *
@@ -147,47 +153,42 @@ abstract class Resource {
    * @param data - Some item properties to be updated. Any excluded properties will remain the same as existing.
    * @returns New detail from updated item
    */
-  abstract update<T>(id: RecordID, data: T): Promise<ResourceResponse<T>>;
+  abstract update(
+    id: RecordID,
+    data: Partial<T>,
+  ): Promise<RepositoryResponse<T>>;
   /**
    * Delete an existing item.
    *
    * @param id - ID of existing item
-   * @returns Deleted item ID
+   * @returns Is deletion success?
    */
-  abstract delete<T>(id: RecordID): Promise<ResourceResponse<RecordID>>;
+  abstract delete(id: RecordID): Promise<RepositoryResponse<boolean>>;
 }
 
 /**
- * An interface describing a database detail and ORM.
+ * An interface describing a database with selected driver and high-level ORM.
  *
  * @remarks
  * This interface must be implemented once with an identifier named `masterData`
  */
 interface Database {
   /**
-   * The storage instance.
+   * Storage driver used.
    *
    * @remarks
-   * It acts as low level API that will be used by Resource instance to communicate. If `type` is "Browser" then this will hold `localStorage`
+   * This driver acts as low-level API to perform operations on a Storage (e.g. Web LocalStorage or REST API to a Backend)
    */
-  _storage: Storage | null;
-  type: "Browser" | "Server SQL";
-
-  /**
-   * Connect to DB and set `storage`
-   *
-   * @returns - All of these
-   */
-  setup(): Promise<Database>;
+  _driver: IStorageDriver;
 
   // List of ERP Modules
   Procurement: {
     // List of Resources available on Procurement module
-    orders: Resource;
+    orders: BaseRepository<PurchaseOrder>;
   };
   Inventory: {
     // List of Resources available on Inventory module
-    items: Resource;
+    items: BaseRepository<Material>;
   };
 }
 ```
